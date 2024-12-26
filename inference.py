@@ -31,6 +31,7 @@ def prepare_features(df, current_lag_id, lags_df=None):
     feature_cols = [f'feature_{i:02d}' for i in range(79) if f'feature_{i:02d}' not in columns_to_drop]
 
     feature_cols = [col for col in feature_cols if col in df.columns]
+
     responder_cols = [f'responder_{i}_lag_{current_lag_id}' for i in range(9) if i != 6]
 
     features_df = df.copy()
@@ -45,8 +46,6 @@ def prepare_features(df, current_lag_id, lags_df=None):
                 features_df[col] = lags_df[col].values
 
             missing_responders = [col for col in responder_cols if col not in available_responders]
-            print(missing_responders)
-
             for col in missing_responders:
                 features_df[col] = 0.0
         except Exception as e:
@@ -60,8 +59,10 @@ def prepare_features(df, current_lag_id, lags_df=None):
     all_features = feature_cols + responder_cols
 
     for col in all_features:
+        median_val = features_df[col].median()
+
         if features_df[col].isna().any():
-            features_df[col] = features_df[col].fillna(features_df[col].median())
+            features_df[col] = features_df[col].fillna(median_val if not pd.isna(median_val) else 0)
 
     return features_df[all_features].values
 
