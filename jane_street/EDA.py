@@ -12,6 +12,16 @@ print("\nPercentage of missing values per column:\n", (train.isnull().sum() / le
 
 print("\nDescriptive statistics:\n", train.describe())
 
+corrs = []
+for col in train.columns:
+    if col != "responder_6":
+        corr = train.select(pl.corr("responder_6", col)).item()
+        corrs.append((col, corr))
+
+for col, corr in sorted(corrs, key=lambda x: x[1], reverse=True):
+    print(f"{col}: {corr:.3f}")
+
+
 numerical_cols = train.select_dtypes(include=np.number).columns.tolist()
 numerical_cols.remove('responder_6')
 numerical_cols.remove('date_id')
