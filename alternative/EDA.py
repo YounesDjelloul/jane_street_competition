@@ -1,3 +1,50 @@
+def analyze_missing_values(df):
+    # Convert wide to long format for easier analysis
+    df_long = pd.melt(
+        df,
+        id_vars=['Country', 'Indicator'],
+        value_vars=[col for col in df.columns if col.startswith('YR')],
+        var_name='Year',
+        value_name='Value'
+    )
+
+    # Overall missing values by indicator and country
+    print("Missing Values Analysis by Indicator and Country:\n")
+    pivot_missing = df_long.pivot_table(
+        values='Value',
+        index='Country',
+        columns='Indicator',
+        aggfunc=lambda x: x.isna().mean() * 100  # Percentage of missing values
+    )
+
+    print("Percentage of missing values for each indicator by country:")
+    print(pivot_missing.round(2))
+    print("\n" + "=" * 80 + "\n")
+
+    # Missing values summary by indicator
+    print("Overall missing values by indicator:")
+    indicator_missing = df_long.groupby('Indicator')['Value'].apply(
+        lambda x: (x.isna().mean() * 100).round(2)
+    ).sort_values(ascending=False)
+    print(indicator_missing)
+    print("\n" + "=" * 80 + "\n")
+
+    # Missing values summary by country
+    print("Overall missing values by country:")
+    country_missing = df_long.groupby('Country')['Value'].apply(
+        lambda x: (x.isna().mean() * 100).round(2)
+    ).sort_values(ascending=False)
+    print(country_missing)
+    print("\n" + "=" * 80 + "\n")
+
+    # Missing values by year
+    print("Missing values by year:")
+    year_missing = df_long.groupby('Year')['Value'].apply(
+        lambda x: (x.isna().mean() * 100).round(2)
+    ).sort_values(ascending=False)
+    print(year_missing)
+
+
 df = pd.read_csv(train_path)
 
 print("Shape of dataset:", df.shape)
@@ -30,6 +77,7 @@ def detect_outliers_iqr(data, column):
     upper_bound = Q3 + 1.5 * IQR
     outliers = data[(data[column] < lower_bound) | (data[column] > upper_bound)]
     return outliers
+
 
 outliers = detect_outliers_iqr(df, 'Total_Amount')
 print(f"Outliers in 'Total_Amount':\n{outliers}")
